@@ -76,3 +76,6 @@ artifacts/
 
 # Node modules (if using any node tools)
 node_modules/
+
+# Docs
+/docs/*.drawio.bkp

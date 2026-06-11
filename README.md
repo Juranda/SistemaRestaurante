@@ -42,3 +42,24 @@ Entregue).
 > [!NOTE] Como a aplicação foi desenvolvida utilizando Blazor, as interações da interface já ocorrem de forma assíncrona e reativa, dispensando a necessidade de Ajax explícito.
 
 ---
+
+#### Erros
+
+
+Códigos de erro estão documentados nesta forma:
+
+{ENTIDADE}-{DOMINIO}-{SEQUENCIA}
+
+Entidade:
+- USUA - Usuario
+- PEDI - Pedido
+- PROD - Produto
+- MESA - Mesa
+- CARD - Cardapio
+- SETO - Setor
+
+Dominio: Determina o nivel do erro dentro da aplicação
+- DOM - Dominio
+- APP - Aplicação
+- INF - Infraestrutura
+- APR - Apresentacao
