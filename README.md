@@ -37,6 +37,7 @@ Entregue).
 - Testes de integração
 - Validação intuitiva
 - Docker
+- DDD
 
 > [!NOTE] Como a aplicação foi desenvolvida utilizando Blazor, as interações da interface já ocorrem de forma assíncrona e reativa, dispensando a necessidade de Ajax explícito.
 
