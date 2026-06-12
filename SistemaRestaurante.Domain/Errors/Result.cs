@@ -106,7 +106,7 @@ public sealed class Result<T> : Result
     new public static Result<T> FromError(Error error) => new(default, error);
     new public static Result<T> FromErrors(List<Error> errors) => new(default, errors);
     public static Result<T> FromValue(T value) => new(value, (Error?)null);
-    public static Result<T> FromResult(Result result) => FromErrors(result.Errors!.ToList());
+    public static Result<T> FromResult(Result result) => FromErrors((result.Errors ?? []).ToList());
     public static Result<T> Sucess(T value) => new(value, (Error?)null);
 
     public static implicit operator Result<T>(T value) => FromValue(value);
