@@ -6,8 +6,8 @@ public class Setor
 {
     public int Id { get; private set; }
     public string Nome { get; private set; }
-    private const int MIN_CARACTERES_NOME = 5;
-    private const int MAX_CARACTERES_NOME = 255;
+    public const int MIN_CARACTERES_NOME = 5;
+    public const int MAX_CARACTERES_NOME = 255;
     public TipoSetor Tipo { get; private set; }
 
     private Setor(int id, string nome, TipoSetor tipo)
@@ -19,29 +19,29 @@ public class Setor
 
     public static Result<Setor> Criar(int id, string nome, TipoSetor tipo)
     {
-        var result = Result.All(
-            Validacoes.ValidarNumero(nameof(id), id, 1, int.MaxValue),
-            Validacoes.ValidarTexto(nameof(nome), nome, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME)
-        );
+        var setor = new Setor(id, nome, tipo);
+        var result = setor.Validar();
 
         if (result.IsError)
         {
             return (Result<Setor>)result;
         }
 
-        return new Setor(id, nome, tipo);
+        return setor;
     }
 
-    public Result Atualizar(string nome)
+    public Result Atualizar(string nome, TipoSetor tipo)
     {
-        var result = Validacoes.ValidarTexto(nameof(nome), nome, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME);
+        var setor = new Setor(Id, nome, tipo);
+        var result = setor.Validar();
 
         if (result.IsError)
         {
-            return result;
+            return (Result<Setor>)result;
         }
 
         Nome = nome;
+        Tipo = tipo;
         return Result.Success();
     }
 
@@ -49,7 +49,8 @@ public class Setor
     {
         var result = Result.All(
             Validacoes.ValidarNumero(nameof(Id), Id, 1, int.MaxValue),
-            Validacoes.ValidarTexto(nameof(Nome), Nome, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME)
+            Validacoes.ValidarTexto(nameof(Nome), Nome, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME),
+            Validacoes.ValidarEnum(nameof(Tipo), Tipo)
         );
 
         return result;
