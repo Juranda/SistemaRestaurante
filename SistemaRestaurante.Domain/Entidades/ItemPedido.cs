@@ -14,6 +14,7 @@ public class ItemPedido
         PedidoId = pedidoId;
         Quantidade = quantidade;
         ProdutoId = produtoId;
+        Status = StatusPedido.EM_PREPARO;
     }
 
     public static Result<ItemPedido> Criar(int pedidoId, int quantidade, int produtoId)
@@ -38,7 +39,7 @@ public class ItemPedido
         );
     }
 
-    public Result AtualizarStatus()
+    public Result AvancarStatus()
     {
         switch (Status)
         {
