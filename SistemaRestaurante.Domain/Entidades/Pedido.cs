@@ -62,7 +62,15 @@ public class Pedido
 
     public Result Validar()
     {
-        Result validacoes = itemsPedido.Select(x => x.Validar()).Aggregate((prev, curr) => prev.CombineResult(curr))!;
+        Result validacaoItems;
+        
+        if(itemsPedido.Count == 0)
+        {
+            validacaoItems = ErrosPedido.PedidoSemItems();
+        } else
+        {
+            validacaoItems = itemsPedido.Select(x => x.Validar()).Aggregate((prev, curr) => prev.CombineResult(curr))!;
+        }
         
         return Result.All(
             Validacoes.ValidarNumero(nameof(Id), Id, 1, int.MaxValue),

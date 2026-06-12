@@ -68,4 +68,17 @@ public class ItemPedido
         Quantidade = quantidade;
         return Result.Success();
     }
+
+    public Result AlterarStatus(StatusPedido status)
+    {
+        if (Status == status) return Result.Success();
+        
+        if (Status < status)
+        {
+            return ErrosPedido.AlterarParaStatusInvalido();
+        }
+
+        Status = status;
+        return Result.Success();
+    }
 }
