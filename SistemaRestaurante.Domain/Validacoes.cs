@@ -27,7 +27,7 @@ public class Validacoes
 
         if (valor.Length < min)
         {
-            errors.Add(ValidationErrors.StringTooShort(nomeCampo, valor, max));
+            errors.Add(ValidationErrors.StringTooShort(nomeCampo, valor, min));
         }
 
         return errors;
@@ -44,7 +44,7 @@ public class Validacoes
 
         if (valor < min)
         {
-            errors.Add(ValidationErrors.NumberTooLow(nomeCampo, valor, max));
+            errors.Add(ValidationErrors.NumberTooLow(nomeCampo, valor, min));
         }
 
         return errors;
@@ -61,7 +61,7 @@ public class Validacoes
 
         if (valor < min)
         {
-            errors.Add(ValidationErrors.NumberTooLow(nomeCampo, valor, max));
+            errors.Add(ValidationErrors.NumberTooLow(nomeCampo, valor, min));
         }
 
         return errors;
