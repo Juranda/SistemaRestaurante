@@ -44,6 +44,7 @@ public class Produto
         }
 
         Nome = nome;
+        Preco = preco;
         SetorPreparoId = setorPreparoId;
 
         return Result.Success();
