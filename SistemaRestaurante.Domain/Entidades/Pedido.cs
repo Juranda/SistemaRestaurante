@@ -22,29 +22,32 @@ public class Pedido
         this.itemsPedido = itemsPedido;
     }
 
-    public StatusPedido Status()
+    public StatusPedido Status
     {
-        if(itemsPedido.Count == 0)
+        get
         {
-            return StatusPedido.ENTREGUE;
-        }
+            if(itemsPedido.Count == 0)
+            {
+                return StatusPedido.EM_PREPARO;
+            }
 
-        if (itemsPedido.All(x => x.Status == StatusPedido.EM_PREPARO))
-        {
+            if (itemsPedido.All(x => x.Status == StatusPedido.ENTREGUE))
+            {
+                return StatusPedido.ENTREGUE;
+            }
+
+            if (itemsPedido.All(x => x.Status == StatusPedido.PRONTO))
+            {
+                return StatusPedido.PRONTO;
+            }
+
+            if(itemsPedido.Any(x => x.Status == StatusPedido.EM_PREPARO) == false)
+            {
+                return StatusPedido.PRONTO;
+            }
+
             return StatusPedido.EM_PREPARO;
         }
-
-        if (itemsPedido.All(x => x.Status == StatusPedido.PRONTO))
-        {
-            return StatusPedido.PRONTO;
-        }
-
-        if (itemsPedido.All(x => x.Status == StatusPedido.ENTREGUE))
-        {
-            return StatusPedido.ENTREGUE;
-        }
-
-        throw new Exception("Status inválido");
     }
 
     public static Result<Pedido> Criar(int id, string nomeCliente, int numeroMesa, List<ItemPedido> itemsPedido)
@@ -63,15 +66,16 @@ public class Pedido
     public Result Validar()
     {
         Result validacaoItems;
-        
-        if(itemsPedido.Count == 0)
+
+        if (itemsPedido.Count == 0)
         {
             validacaoItems = ErrosPedido.PedidoSemItems();
-        } else
+        }
+        else
         {
             validacaoItems = itemsPedido.Select(x => x.Validar()).Aggregate((prev, curr) => prev.CombineResult(curr))!;
         }
-        
+
         return Result.All(
             Validacoes.ValidarNumero(nameof(Id), Id, 1, int.MaxValue),
             Validacoes.ValidarTexto(nameof(NomeCliente), NomeCliente, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME),
@@ -84,16 +88,37 @@ public class Pedido
     {
         var item = itemsPedido.FirstOrDefault(x => x.ProdutoId == produtoId);
 
-        if(item is null)
+        if (item is null)
         {
-            return ErrosPedido.AlterarQuantidadeDeItemInexistente();
+            Result<ItemPedido> result = ItemPedido.Criar(Id, quantidade, produtoId);
+
+            if(result.IsError)
+            {
+                return result;
+            }
+
+            itemsPedido.Add(result.Value!);
+
+            return Result.Success();
         }
 
-        if(quantidade == 0)
+        if (quantidade == 0)
         {
             itemsPedido.Remove(item);
         }
 
         return item.AlterarQuantidade(quantidade);
+    }
+
+    public Result AvancarStatusItem(int produtoId)
+    {
+        ItemPedido? item = ItemsPedido.FirstOrDefault(x => x.ProdutoId == produtoId);
+
+        if (item is null)
+        {
+            return ErrosPedido.AlterarStatusItemPedidoInexistente();
+        }
+
+        return item.AvancarStatus();
     }
 }
