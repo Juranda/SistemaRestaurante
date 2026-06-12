@@ -23,7 +23,7 @@ public class ItemPedido
 
         if (result.IsError)
         {
-            return (Result<ItemPedido>)result;
+            return Result<ItemPedido>.FromResult(result);
         }
 
         return item;
@@ -60,7 +60,7 @@ public class ItemPedido
         var item = new ItemPedido(PedidoId, quantidade, ProdutoId);
         var result = item.Validar();
 
-        if(result.IsError)
+        if (result.IsError)
         {
             return result;
         }

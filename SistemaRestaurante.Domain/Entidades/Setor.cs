@@ -24,7 +24,7 @@ public class Setor
 
         if (result.IsError)
         {
-            return (Result<Setor>)result;
+            return Result<Setor>.FromResult(result);
         }
 
         return setor;

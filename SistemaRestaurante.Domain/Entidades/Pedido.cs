@@ -54,7 +54,7 @@ public class Pedido
 
         if (result.IsError)
         {
-            return (Result<Pedido>)result;
+            return Result<Pedido>.FromResult(result);
         }
 
         return pedido;
@@ -76,7 +76,7 @@ public class Pedido
             Validacoes.ValidarNumero(nameof(Id), Id, 1, int.MaxValue),
             Validacoes.ValidarTexto(nameof(NomeCliente), NomeCliente, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME),
             Validacoes.ValidarNumero(nameof(NumeroMesa), NumeroMesa, 1, int.MaxValue),
-            validacoes
+            validacaoItems
         );
     }
 

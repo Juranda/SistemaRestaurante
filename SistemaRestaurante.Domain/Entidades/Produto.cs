@@ -27,7 +27,7 @@ public class Produto
 
         if (result.IsError)
         {
-            return (Result<Produto>)result;
+            return Result<Produto>.FromResult(result);
         }
 
         return produto;

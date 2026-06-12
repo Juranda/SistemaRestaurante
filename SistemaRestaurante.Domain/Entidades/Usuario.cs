@@ -28,7 +28,7 @@ public class Usuario
 
         if (result.IsError)
         {
-            return (Result<Usuario>)result;
+            return Result<Usuario>.FromResult(result);
         }
 
         return usuario;
