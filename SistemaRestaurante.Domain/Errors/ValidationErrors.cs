@@ -14,7 +14,7 @@ public static class ValidationErrors
     public static Error NumberTooHigh(string field, int value, int max) => new Error("VAL-DOM-0009", $"'{field}' deve ser no maximo {max}, valor encontrado: {value}.", ErrorTypes.Validation);
     public static Error NumberTooLow(string field, double value, double min) => new Error("VAL-DOM-0008", $"'{field}' deve ser no minimo {min}, valor encontrado: {value}.", ErrorTypes.Validation);
     public static Error NumberTooHigh(string field, double value, double max) => new Error("VAL-DOM-0009", $"'{field}' deve ser no maximo {max}, valor encontrado: {value}.", ErrorTypes.Validation);
-    
+    public static Error InvalidEnum<E>(string field, E value) where E : Enum => new Error("VAL-DOM-0010", $"{field} não possui valor válido para o enum {nameof(E)}, valor encontrado: {value}", ErrorTypes.Validation);
     public static Dictionary<string, object> GetFieldErros(IReadOnlyList<Error>? errors)
     {
         Dictionary<string, object> invalidFields = [];

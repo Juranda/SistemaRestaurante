@@ -1,3 +1,4 @@
+using SistemaRestaurante.Domain.Entidades;
 using SistemaRestaurante.Domain.Errors;
 
 namespace SistemaRestaurante.Domain;
@@ -64,5 +65,15 @@ public class Validacoes
         }
 
         return errors;
+    }
+
+    public static Result ValidarEnum<E>(string nomeCampo, E valor) where E : Enum
+    {
+        if(Enum.IsDefined(typeof(E), valor))
+        {
+            return Result.Success();
+        }
+
+        return ValidationErrors.InvalidEnum(nomeCampo, valor);
     }
 }
