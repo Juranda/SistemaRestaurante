@@ -41,7 +41,7 @@ public class Usuario
 
         if (result.IsError)
         {
-            return (Result<Usuario>)result;
+            return result;
         }
 
         Nome = nome;
