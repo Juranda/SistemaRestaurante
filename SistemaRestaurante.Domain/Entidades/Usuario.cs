@@ -6,11 +6,11 @@ public class Usuario
 {
     public int Id { get; private set; }
     public string Nome { get; private set; }
-    private const int MIN_CARACTERES_NOME = 5;
-    private const int MAX_CARACTERES_NOME = 255;
+    public const int MIN_CARACTERES_NOME = 5;
+    public const int MAX_CARACTERES_NOME = 255;
     public string HashSenha { get; private set; }
-    private const int MIN_CARACTERES_SENHA = 5;
-    private const int MAX_CARACTERES_SENHA = 255;
+    public const int MIN_CARACTERES_SENHA = 5;
+    public const int MAX_CARACTERES_SENHA = 255;
     public int SetorId { get; private set; }
 
     private Usuario(int id, string nome, string hashSenha, int setorId)
