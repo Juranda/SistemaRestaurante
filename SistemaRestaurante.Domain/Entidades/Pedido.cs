@@ -62,10 +62,13 @@ public class Pedido
 
     public Result Validar()
     {
+        Result validacoes = itemsPedido.Select(x => x.Validar()).Aggregate((prev, curr) => prev.CombineResult(curr))!;
+        
         return Result.All(
             Validacoes.ValidarNumero(nameof(Id), Id, 1, int.MaxValue),
             Validacoes.ValidarTexto(nameof(NomeCliente), NomeCliente, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME),
-            Validacoes.ValidarNumero(nameof(NumeroMesa), NumeroMesa, 1, int.MaxValue)
+            Validacoes.ValidarNumero(nameof(NumeroMesa), NumeroMesa, 1, int.MaxValue),
+            validacoes
         );
     }
 

@@ -23,28 +23,21 @@ public class Usuario
 
     public static Result<Usuario> Criar(int id, string nome, string hashSenha, int setorId)
     {
-        var result = Result.All(
-            Validacoes.ValidarNumero(nameof(id), id, 1, int.MaxValue),
-            Validacoes.ValidarTexto(nameof(nome), nome, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME),
-            Validacoes.ValidarTexto(nameof(hashSenha), hashSenha, MIN_CARACTERES_SENHA, MAX_CARACTERES_SENHA),
-            Validacoes.ValidarNumero(nameof(setorId), setorId, 1, int.MaxValue)
-        );
+        var usuario = new Usuario(id, nome, hashSenha, setorId);
+        var result = usuario.Validar();
 
         if (result.IsError)
         {
             return (Result<Usuario>)result;
         }
 
-        return new Usuario(id, nome, hashSenha, setorId);
+        return usuario;
     }
 
-    public Result Atualizar(string nome, string passwordHash, int setorId)
+    public Result Atualizar(string nome, string hashSenha, int setorId)
     {
-        var result = Result.All(
-            Validacoes.ValidarTexto(nameof(nome), nome, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME),
-            Validacoes.ValidarTexto(nameof(passwordHash), passwordHash, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME),
-            Validacoes.ValidarNumero(nameof(setorId), setorId, 1, int.MaxValue)
-        );
+        var usuario = new Usuario(Id, nome, hashSenha, setorId);
+        var result = usuario.Validar();
 
         if (result.IsError)
         {
@@ -52,6 +45,18 @@ public class Usuario
         }
 
         Nome = nome;
+        HashSenha = hashSenha;
+        SetorId = setorId;
         return Result.Success();
+    }
+
+    public Result Validar()
+    {
+        return Result.All(
+            Validacoes.ValidarNumero(nameof(Id), Id, 1, int.MaxValue),
+            Validacoes.ValidarTexto(nameof(Nome), Nome, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME),
+            Validacoes.ValidarTexto(nameof(HashSenha), HashSenha, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME),
+            Validacoes.ValidarNumero(nameof(SetorId), SetorId, 1, int.MaxValue)
+        );
     }
 }
