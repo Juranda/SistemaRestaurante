@@ -1,12 +1,29 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+﻿<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData">
+                <NotAuthorized>
+                    <div class="d-flex justify-content-center align-items-center min-vh-100">
+                        <div class="d-flex flex-column align-items-center">
+                            <h1 role="alert">Não autorizado</h1>
+                            <p role="alert">Volte para a tela de <NavLink href="login">login</NavLink>
+                            </p>
+                        </div>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeRouteView>
+        </Found>
+        <NotFound>
+            <PageTitle>Caminho não encontrado</PageTitle>
+            <LayoutView>
+                <div class="d-flex justify-content-center align-items-center min-vh-100">
+                    <div class="d-flex flex-column align-items-center">
+                        <h1 role="alert">Esse caminho não existe </h1>
+                        <p role="alert">Volte para a tela de <NavLink href="login">login</NavLink>
+                        </p>
+                    </div>
+                </div>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

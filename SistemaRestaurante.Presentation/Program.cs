@@ -7,7 +7,28 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddSingleton<ISenhaHasher, BCryptSenhaHasher>();
+builder.Services.AddScoped<CustomAuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
+builder.Services.AddScoped<IAutenticacaoServico>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
+
+builder.Services.AddScoped<ISetorRepositorio, SetorRepositorioEmMemoria>();
+builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorioEmMemoria>();
+builder.Services.AddScoped<UsuarioLogaUseCase>();
+
+
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorizationCore(options =>
+{
+    options.AddPolicy("Setor", policy =>
+    {
+        policy.RequireClaim("SetorId");
+        policy.RequireClaim("SetorNome");
+    });
+});
+
 
 var app = builder.Build();
 
@@ -25,6 +46,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

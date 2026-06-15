@@ -1,0 +1,102 @@
+@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using SistemaRestaurante.Domain.Entidades
+@using SistemaRestaurante.Application.UseCases
+@using SistemaRestaurante.Application.DTO.Autenticacao
+
+@inject UsuarioLogaUseCase LoginUseCase
+@inject NavigationManager Navigation
+
+
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+    <div class="card shadow" style="width: 400px;">
+        <div class="card-body p-4">
+
+            <h3 class="text-center mb-4">
+                Sistema Restaurante
+            </h3>
+
+            <EditForm Model="Model" OnValidSubmit="ExecuteLogin">
+                <DataAnnotationsValidator />
+
+                <div class="mb-4 form-group">
+                    <label class="form-label">
+                        Usuário
+                    </label>
+
+                    <InputText class="form-control" @bind-Value="Model.Nome" />
+                    <ValidationMessage For="@(() => Model.Nome)" />
+                </div>
+
+                <div class="mb-4 form-group">
+                    <label class="form-label">
+                        Senha
+                    </label>
+
+                    <InputText type="password" class="form-control" @bind-Value="Model.Senha" />
+                    <ValidationMessage For="@(() => Model.Senha)" />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    Entrar
+                </button>
+
+            </EditForm>
+
+            @if (!string.IsNullOrWhiteSpace(MensagemErro))
+            {
+                <div class="alert alert-danger mt-3">
+                    @MensagemErro
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel Model { get; set; } = new();
+
+    private string? MensagemErro;
+
+    private async Task ExecuteLogin()
+    {
+        // Exemplo:
+        var result = await LoginUseCase.Execute(Model.Nome, Model.Senha);
+
+        if (result.IsError)
+        {
+            MensagemErro = "O usuario o senha não existem";
+            return;
+        }
+
+        UsuarioLogado usuarioLogado = result.Value!;
+        Setor setor = usuarioLogado.Setor;
+
+        if (setor.Tipo != TipoSetor.REALIZA_PEDIDO)
+        {
+            Navigation.NavigateTo("/painel-pedidos");
+        }
+        else
+        {
+            Navigation.NavigateTo("/painel-items/setor/" + setor.Id);
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "Nome não pode ser vazio")]
+        [StringLength(
+            Usuario.MAX_CARACTERES_NOME,
+            MinimumLength = Usuario.MIN_CARACTERES_NOME,
+            ErrorMessage = "O nome deve ter entre {2} e {1} caracteres.")]
+        public string Nome { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Senha não pode ser vazia")]
+        [StringLength(
+            Usuario.MAX_CARACTERES_SENHA,
+            MinimumLength = Usuario.MIN_CARACTERES_SENHA,
+            ErrorMessage = "A senha deve ter entre {2} e {1} caracteres.")]
+        public string Senha { get; set; } = string.Empty;
+    }
+}

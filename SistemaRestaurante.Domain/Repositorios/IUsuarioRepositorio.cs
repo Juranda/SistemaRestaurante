@@ -4,7 +4,7 @@ namespace SistemaRestaurante.Domain.Repositorios;
 
 public interface IUsuarioRepositorio
 {
-    public Task<Usuario> ObterUsuarioAsync(string nome);
+    public Task<Usuario?> ObterUsuarioAsync(string nome);
     public Task<Usuario> CriarAsync(Usuario usuario);
     public Task<Usuario> AtualizarAsync(Usuario usuario);
     public Task<bool> RemoverAsync(int id);

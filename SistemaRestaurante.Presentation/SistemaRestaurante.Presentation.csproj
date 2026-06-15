@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SistemaRestaurante.Application\SistemaRestaurante.Application.csproj" />
+    <ProjectReference Include="..\SistemaRestaurante.Infrastructure\SistemaRestaurante.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
