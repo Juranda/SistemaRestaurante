@@ -1,11 +1,15 @@
 @page "/login"
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.DataProtection
 @using SistemaRestaurante.Domain.Entidades
 @using SistemaRestaurante.Application.UseCases
 @using SistemaRestaurante.Application.DTO.Autenticacao
 
+@namespace SistemaRestaurante.Presentation.Pages.Auth
+
 @inject UsuarioLogaUseCase LoginUseCase
 @inject NavigationManager Navigation
+@inject IDataProtectionProvider DataProtectionProvider
 
 
 <div class="container vh-100 d-flex justify-content-center align-items-center">
@@ -73,14 +77,16 @@
         UsuarioLogado usuarioLogado = result.Value!;
         Setor setor = usuarioLogado.Setor;
 
-        if (setor.Tipo != TipoSetor.REALIZA_PEDIDO)
-        {
-            Navigation.NavigateTo("/painel-pedidos");
-        }
-        else
-        {
-            Navigation.NavigateTo("/painel-items/setor/" + setor.Id);
-        }
+        var destino = setor.Tipo != TipoSetor.REALIZA_PEDIDO
+            ? "/pedidos/novo"
+            : "/painel-items/setor/" + setor.Id;
+
+        var protector = DataProtectionProvider.CreateProtector("SistemaRestaurante.Auth");
+        var dto = new LogarUsuario(usuarioLogado.Id, usuarioLogado.Nome, setor.Id, setor.Nome);
+        var payload = Uri.EscapeDataString(protector.Protect(JsonSerializer.Serialize(dto)));
+        var returnUrl = Uri.EscapeDataString(destino);
+
+        Navigation.NavigateTo($"/auth/entrar?payload={payload}&returnUrl={returnUrl}", forceLoad: true);
     }
 
     public class LoginModel

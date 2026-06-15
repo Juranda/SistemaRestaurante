@@ -1,13 +1,19 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using SistemaRestaurante.Presentation.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
+using SistemaRestaurante.Application.InterfacesDeServicos;
+using SistemaRestaurante.Application.UseCases;
+using SistemaRestaurante.Domain.Repositorios;
+using SistemaRestaurante.Infrastructure.Autenticacao;
+using SistemaRestaurante.Infrastructure.Repositorio;
+using SistemaRestaurante.Infrastructure.Servicos;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddDataProtection();
 
 builder.Services.AddSingleton<ISenhaHasher, BCryptSenhaHasher>();
 builder.Services.AddScoped<CustomAuthStateProvider>();
@@ -15,11 +21,24 @@ builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredServ
 builder.Services.AddScoped<IAutenticacaoServico>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 
 builder.Services.AddScoped<ISetorRepositorio, SetorRepositorioEmMemoria>();
+builder.Services.AddScoped<IProdutoRepositorio, ProdutoRepositorioEmMemoria>();
+builder.Services.AddScoped<IPedidoRepositorio, PedidoRepositorioEmMemoria>();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorioEmMemoria>();
+
+builder.Services.AddScoped<UsuarioAlteraStatusDoItemDoPedido>();
+builder.Services.AddScoped<UsuarioRegistraPedidoUseCase>();
 builder.Services.AddScoped<UsuarioLogaUseCase>();
 
 
-builder.Services.AddAuthentication();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+    });
 builder.Services.AddAuthorizationCore(options =>
 {
     options.AddPolicy("Setor", policy =>
@@ -28,7 +47,6 @@ builder.Services.AddAuthorizationCore(options =>
         policy.RequireClaim("SetorNome");
     });
 });
-
 
 var app = builder.Build();
 
@@ -48,6 +66,7 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
