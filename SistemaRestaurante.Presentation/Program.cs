@@ -20,14 +20,15 @@ builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 builder.Services.AddScoped<IAutenticacaoServico>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 
-builder.Services.AddScoped<ISetorRepositorio, SetorRepositorioEmMemoria>();
-builder.Services.AddScoped<IProdutoRepositorio, ProdutoRepositorioEmMemoria>();
-builder.Services.AddScoped<IPedidoRepositorio, PedidoRepositorioEmMemoria>();
-builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorioEmMemoria>();
+builder.Services.AddSingleton<ISetorRepositorio, SetorRepositorioEmMemoria>();
+builder.Services.AddSingleton<IProdutoRepositorio, ProdutoRepositorioEmMemoria>();
+builder.Services.AddSingleton<IPedidoRepositorio, PedidoRepositorioEmMemoria>();
+builder.Services.AddSingleton<IUsuarioRepositorio, UsuarioRepositorioEmMemoria>();
 
 builder.Services.AddScoped<UsuarioAlteraStatusDoItemDoPedido>();
 builder.Services.AddScoped<UsuarioRegistraPedidoUseCase>();
 builder.Services.AddScoped<UsuarioLogaUseCase>();
+builder.Services.AddScoped<HistoricoPedidosUseCase>();
 
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -69,5 +70,6 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+app.UsePathBase("/login");
 
 app.Run();

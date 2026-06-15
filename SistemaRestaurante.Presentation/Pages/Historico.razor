@@ -1,0 +1,97 @@
+@page "/historico"
+@attribute [Authorize]
+
+@using SistemaRestaurante.Domain.Entidades
+@using SistemaRestaurante.Application.UseCases
+@layout MainLayout
+
+@inject HistoricoPedidosUseCase HistoricoUseCase
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Histórico de Pedidos</h2>
+
+    @if (_carregando)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-secondary" role="status"></div>
+        </div>
+    }
+    else if (_erro)
+    {
+        <div class="alert alert-danger">
+            Ocorreu um erro ao carregar o histórico. Tente novamente.
+            <button class="btn btn-sm btn-outline-danger ms-3" @onclick="Carregar">
+                Tentar novamente
+            </button>
+        </div>
+    }
+    else if (!_pedidos.Any())
+    {
+        <div class="alert alert-info">
+            Nenhum pedido finalizado até o momento.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Cliente</th>
+                        <th>Mesa</th>
+                        <th>Itens</th>
+                        <th>Finalizado em</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pedido in _pedidos)
+                    {
+                        <tr>
+                            <td>@pedido.Id</td>
+                            <td>@pedido.NomeCliente</td>
+                            <td>@pedido.NumeroMesa</td>
+                            <td>@pedido.ItemsPedido.Count</td>
+                            <td>@pedido.Timestamp.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge bg-success">Entregue</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <p class="text-muted small">@_pedidos.Count() pedido(s) finalizado(s).</p>
+    }
+
+</div>
+
+@code {
+    private IEnumerable<Pedido> _pedidos = [];
+    private bool _carregando = true;
+    private bool _erro = false;
+
+    protected override async Task OnInitializedAsync() => await Carregar();
+
+    private async Task Carregar()
+    {
+        _carregando = true;
+        _erro = false;
+
+        try
+        {
+            _pedidos = await HistoricoUseCase.Execute();
+        }
+        catch
+        {
+            _erro = true;
+        }
+        finally
+        {
+            _carregando = false;
+        }
+    }
+}
