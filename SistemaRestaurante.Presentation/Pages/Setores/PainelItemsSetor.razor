@@ -1,0 +1,158 @@
+@page "/painel-items/setor/{setorId:int}"
+@attribute [Authorize(Policy = "Setor")]
+
+@using SistemaRestaurante.Domain.Entidades
+@using SistemaRestaurante.Domain.Repositorios
+@using SistemaRestaurante.Application.UseCases
+
+@inject IPedidoRepositorio PedidoRepositorio
+@inject IProdutoRepositorio ProdutoRepositorio
+@inject UsuarioAlteraStatusDoItemDoPedido AvancarStatusUseCase
+@inject AuthenticationStateProvider AuthProvider
+
+<div class="container-fluid mt-4">
+
+    <h2 class="mb-4">Painel de Itens — Setor @setorId</h2>
+
+    <div class="row gy-2">
+
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark fw-bold">
+                    Em Preparo
+                </div>
+                <div class="card-body d-flex flex-column gap-2">
+                    @foreach (var (pedido, item) in ItensEmPreparo)
+                    {
+                        <ItemPedidoCard Pedido="pedido" Item="item" NomeProduto="@NomeProduto(item.ProdutoId)"
+                                        LabelAvancar="Marcar como Pronto" OnAvancar="() => AvancarStatus(pedido, item)" />
+                    }
+                    @if (!ItensEmPreparo.Any())
+                    {
+                        <p class="text-muted mb-0">Nenhum item em preparo.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white fw-bold">
+                    Prontos
+                </div>
+                <div class="card-body d-flex flex-column gap-2">
+                    @foreach (var (pedido, item) in ItensProntos)
+                    {
+                        <ItemPedidoCard Pedido="pedido" Item="item" NomeProduto="@NomeProduto(item.ProdutoId)"
+                                        LabelAvancar="Marcar como Entregue" OnAvancar="() => AvancarStatus(pedido, item)" />
+                    }
+                    @if (!ItensProntos.Any())
+                    {
+                        <p class="text-muted mb-0">Nenhum item pronto.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-secondary">
+                <div class="card-header bg-secondary text-white fw-bold">
+                    Entregues
+                </div>
+                <div class="card-body d-flex flex-column gap-2">
+                    @foreach (var (pedido, item) in ItensEntregues)
+                    {
+                        <ItemPedidoCard Pedido="pedido" Item="item" NomeProduto="@NomeProduto(item.ProdutoId)" />
+                    }
+                    @if (!ItensEntregues.Any())
+                    {
+                        <p class="text-muted mb-0">Nenhum item entregue.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @if (!string.IsNullOrEmpty(_erro))
+    {
+        <div class="alert alert-danger mt-3">@_erro</div>
+    }
+
+</div>
+
+@code {
+    [Parameter] public int setorId { get; set; }
+    //[CascadingParameter] private Setor SetorAtual { get; set; }
+
+    private List<Pedido> _todosPedidos = [];
+    private int usuarioId;
+    private string? _erro;
+
+    // Pares (Pedido, Item) filtrados por setor e status
+    private IEnumerable<(Pedido pedido, ItemPedido item)> TodosItensDoSetor =>
+        _todosPedidos
+            .SelectMany(p => p.ItemsPedido
+                .Where(i => _produtos.FirstOrDefault(prod => prod.Id == i.ProdutoId)?.SetorPreparoId == setorId)
+                .Select(i => (pedido: p, item: i)));
+
+    private IEnumerable<(Pedido, ItemPedido)> ItensEmPreparo =>
+        TodosItensDoSetor.Where(x => x.item.Status == StatusPedido.EM_PREPARO);
+
+    private IEnumerable<(Pedido, ItemPedido)> ItensProntos =>
+        TodosItensDoSetor.Where(x => x.item.Status == StatusPedido.PRONTO);
+
+    private IEnumerable<(Pedido, ItemPedido)> ItensEntregues =>
+        TodosItensDoSetor.Where(x => x.item.Status == StatusPedido.ENTREGUE);
+
+    private string NomeProduto(int produtoId) =>
+    _produtos.FirstOrDefault(p => p.Id == produtoId)?.Nome ?? $"Produto #{produtoId}";
+
+    private List<Produto> _produtos = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        var claim = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (claim is null || !int.TryParse(claim, out usuarioId))
+            return;
+
+        // Carrega produtos para lookup de nome
+        _produtos = (await ProdutoRepositorio.ObterTodosDisponiveisAsync()).ToList();
+
+        await CarregarPedidos();
+    }
+
+    private async Task CarregarPedidos()
+    {
+        _todosPedidos = (await PedidoRepositorio.ObterTodosPedidosAteHorarioAsync(DateTime.Now)).ToList();
+    }
+
+    private async Task AvancarStatus(Pedido pedido, ItemPedido item)
+    {
+        _erro = null;
+
+        var novoStatus = item.Status switch
+        {
+            StatusPedido.EM_PREPARO => StatusPedido.PRONTO,
+            StatusPedido.PRONTO => StatusPedido.ENTREGUE,
+            _ => item.Status
+        };
+
+        if (novoStatus == item.Status)
+            return;
+
+        var result = await AvancarStatusUseCase.Execute(usuarioId, pedido.Id, item.ProdutoId, novoStatus);
+
+        if (result.IsError)
+        {
+            _erro = result.Errors!.First().Message;
+            return;
+        }
+
+        // Recarrega para refletir o novo estado
+        await CarregarPedidos();
+        StateHasChanged();
+    }
+}
