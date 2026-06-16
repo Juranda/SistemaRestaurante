@@ -12,17 +12,18 @@ public class Produto
     public int SetorPreparoId { get; set; }
     public bool Disponivel { get; set; }
 
-    private Produto(int id, string nome, double preco, int setorPreparoId)
+    private Produto(int id, string nome, double preco, int setorPreparoId, bool disponivel)
     {
         Id = id;
         Nome = nome;
         Preco = preco;
         SetorPreparoId = setorPreparoId;
+        Disponivel = disponivel;
     }
 
-    public static Result<Produto> Criar(int id, string nome, double preco, int setorPreparoId)
+    public static Result<Produto> Criar(int id, string nome, double preco, int setorPreparoId, bool disponivel)
     {
-        var produto = new Produto(id, nome, preco, setorPreparoId);
+        var produto = new Produto(id, nome, preco, setorPreparoId, disponivel);
         var result = produto.Validar();
 
         if (result.IsError)
@@ -33,14 +34,14 @@ public class Produto
         return produto;
     }
 
-    public Result Atualizar(string nome, double preco, int setorPreparoId)
+    public Result Atualizar(string nome, double preco, int setorPreparoId, bool disponivel)
     {
-        var produto = new Produto(Id, nome, preco, setorPreparoId);
+        var produto = new Produto(Id, nome, preco, setorPreparoId, disponivel);
         var result = produto.Validar();
 
         if (result.IsError)
         {
-            return (Result<Produto>)result;
+            return Result<Produto>.FromResult(result);
         }
 
         Nome = nome;

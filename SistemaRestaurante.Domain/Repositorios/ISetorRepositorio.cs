@@ -5,6 +5,7 @@ namespace SistemaRestaurante.Domain.Repositorios;
 public interface ISetorRepositorio
 {
     public Task<IEnumerable<Setor>> ObterTodosAsync();
+    public Task<Setor?> ObterPorId(int id);
     public Task<Setor> CriarAsync(Setor setor);
     public Task<Setor> AtualizarAsync(Setor setor);
     public Task<bool> RemoverAsync(int id);

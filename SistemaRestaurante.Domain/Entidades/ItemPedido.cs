@@ -70,11 +70,13 @@ public class ItemPedido
         return Result.Success();
     }
 
+    public void AtualizarPedidoId(int pedidoId) => PedidoId = pedidoId;
+
     public Result AlterarStatus(StatusPedido status)
     {
         if (Status == status) return Result.Success();
         
-        if (Status < status)
+        if (Status > status)
         {
             return ErrosPedido.AlterarParaStatusInvalido();
         }

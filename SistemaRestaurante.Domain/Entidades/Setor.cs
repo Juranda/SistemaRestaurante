@@ -6,7 +6,7 @@ public class Setor
 {
     public int Id { get; private set; }
     public string Nome { get; private set; }
-    public const int MIN_CARACTERES_NOME = 5;
+    public const int MIN_CARACTERES_NOME = 2;
     public const int MAX_CARACTERES_NOME = 255;
     public TipoSetor Tipo { get; private set; }
 

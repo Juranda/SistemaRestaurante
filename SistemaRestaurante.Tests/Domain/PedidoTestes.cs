@@ -15,7 +15,7 @@ public class PedidoTestes
 
     private static Result<Pedido> GerarResultCriarPedidoValido()
     {
-        return Pedido.Criar(1, "Felipe", 2, GerarItemsPedidoValidos());
+        return Pedido.Criar(1, "Felipe", 2, GerarItemsPedidoValidos(), DateTime.Now);
     }
 
     private static List<ItemPedido> GerarItemsPedidoValidos()
@@ -65,8 +65,8 @@ public class PedidoTestes
     [Fact]
     public void CriarPedidoInvalido_DeveRetornar_Erro()
     {
-        Result<Pedido> result = Pedido.Criar(0, null, -1, []);
-        Result<Pedido> result2 = Pedido.Criar(1, "", 10, GerarItemsPedidoValidos());
+        Result<Pedido> result = Pedido.Criar(0, null, -1, [], DateTime.Now);
+        Result<Pedido> result2 = Pedido.Criar(1, "", 10, GerarItemsPedidoValidos(), DateTime.Now);
 
         Assert.True(result.IsError);
         Assert.NotNull(result.Errors);
@@ -110,6 +110,30 @@ public class PedidoTestes
         output.WriteLine(resultAltera.ToString());
     }
     
+    [Fact]
+    public void AlterarStatusItem_Avanca_DeveRetornar_Sucesso()
+    {
+        var item = ItemPedido.Criar(1, 2, 1).Value!;
+
+        var result = item.AlterarStatus(StatusPedido.PRONTO);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(StatusPedido.PRONTO, item.Status);
+    }
+
+    [Fact]
+    public void AlterarStatusItem_Retrocede_DeveRetornar_Erro()
+    {
+        var item = ItemPedido.Criar(1, 2, 1).Value!;
+        item.AvancarStatus(); // EM_PREPARO → PRONTO
+
+        var result = item.AlterarStatus(StatusPedido.EM_PREPARO);
+
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors!, e => e == ErrosPedido.AlterarParaStatusInvalido());
+        Assert.Equal(StatusPedido.PRONTO, item.Status); // status não deve ter mudado
+    }
+
     [Fact]
     public void Status_DeveRetornar_StatusCorreto()
     {

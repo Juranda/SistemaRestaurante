@@ -6,20 +6,23 @@ public class Pedido
 {
     public int Id { get; private set; }
     public string NomeCliente { get; private set; }
-    public const int MIN_CARACTERES_NOME = 5;
-    public const int MAX_CARACTERES_NOME = 50;
+    public const int MIN_CARACTERES_NOME_CLIENTE = 2;
+    public const int MAX_CARACTERES_NOME_CLIENTE = 50;
     public int NumeroMesa { get; private set; }
+    public DateTime Timestamp { get; private set; }
     public IReadOnlyList<ItemPedido> ItemsPedido => itemsPedido.AsReadOnly();
     private List<ItemPedido> itemsPedido { get; set; }
 
     public bool Pronto => itemsPedido.All(x => x.Status == StatusPedido.PRONTO);
+    public int Quantidade => itemsPedido.Select(x => x.Quantidade).Aggregate((prev, curr) => prev += curr);
 
-    private Pedido(int id, string nomeCliente, int numeroMesa, List<ItemPedido> itemsPedido)
+    private Pedido(int id, string nomeCliente, int numeroMesa, List<ItemPedido> itemsPedido, DateTime timestamp)
     {
         Id = id;
         NomeCliente = nomeCliente;
         NumeroMesa = numeroMesa;
         this.itemsPedido = itemsPedido;
+        Timestamp = timestamp;
     }
 
     public StatusPedido Status
@@ -50,9 +53,9 @@ public class Pedido
         }
     }
 
-    public static Result<Pedido> Criar(int id, string nomeCliente, int numeroMesa, List<ItemPedido> itemsPedido)
+    public static Result<Pedido> Criar(int id, string nomeCliente, int numeroMesa, List<ItemPedido> itemsPedido, DateTime timestamp)
     {
-        var pedido = new Pedido(id, nomeCliente, numeroMesa, itemsPedido);
+        var pedido = new Pedido(id, nomeCliente, numeroMesa, itemsPedido, timestamp);
         var result = pedido.Validar();
 
         if (result.IsError)
@@ -78,7 +81,7 @@ public class Pedido
 
         return Result.All(
             Validacoes.ValidarNumero(nameof(Id), Id, 1, int.MaxValue),
-            Validacoes.ValidarTexto(nameof(NomeCliente), NomeCliente, MIN_CARACTERES_NOME, MAX_CARACTERES_NOME),
+            Validacoes.ValidarTexto(nameof(NomeCliente), NomeCliente, MIN_CARACTERES_NOME_CLIENTE, MAX_CARACTERES_NOME_CLIENTE),
             Validacoes.ValidarNumero(nameof(NumeroMesa), NumeroMesa, 1, int.MaxValue),
             validacaoItems
         );
