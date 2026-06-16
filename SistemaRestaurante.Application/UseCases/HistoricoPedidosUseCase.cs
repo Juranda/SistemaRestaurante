@@ -1,5 +1,5 @@
+using SistemaRestaurante.Application.Repositorios;
 using SistemaRestaurante.Domain.Entidades;
-using SistemaRestaurante.Domain.Repositorios;
 
 namespace SistemaRestaurante.Application.UseCases;
 

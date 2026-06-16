@@ -1,6 +1,6 @@
 using SistemaRestaurante.Domain.Entidades;
 
-namespace SistemaRestaurante.Domain.Repositorios;
+namespace SistemaRestaurante.Application.Repositorios;
 
 public interface IPedidoRepositorio
 {

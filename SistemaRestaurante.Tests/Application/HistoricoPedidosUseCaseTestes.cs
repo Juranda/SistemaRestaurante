@@ -1,7 +1,7 @@
 using Moq;
+using SistemaRestaurante.Application.Repositorios;
 using SistemaRestaurante.Application.UseCases;
 using SistemaRestaurante.Domain.Entidades;
-using SistemaRestaurante.Domain.Repositorios;
 
 namespace SistemaRestaurante.Tests.Application;
 
