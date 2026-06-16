@@ -1,6 +1,6 @@
+using SistemaRestaurante.Application.Repositorios;
 using SistemaRestaurante.Domain.Entidades;
 using SistemaRestaurante.Domain.Errors;
-using SistemaRestaurante.Domain.Repositorios;
 
 namespace SistemaRestaurante.Application.UseCases;
 

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using SistemaRestaurante.Application.Repositorios;
 using SistemaRestaurante.Domain.Entidades;
-using SistemaRestaurante.Domain.Repositorios;
 
 namespace SistemaRestaurante.Infrastructure.Repositorio;
 
