@@ -34,20 +34,19 @@ public class CustomAuthStateProvider(
             new Claim(ClaimTypes.Name, usuario.Nome),
             new Claim("SetorId", usuario.SetorId.ToString()),
             new Claim("SetorNome", usuario.SetorNome),
+            new Claim("SetorTipo", ((int)usuario.SetorTipo).ToString()),
         };
 
         var identity = new ClaimsIdentity(claims, "CustomAuth");
         _usuarioAtual = new(identity);
-        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        // Não notifica aqui — Login.razor sempre faz forceLoad para /auth/entrar
+        // logo após esta chamada, destruindo o circuit. Notificar aqui causaria
+        // um re-render conflitante com o NavigateTo forceLoad.
         return Task.CompletedTask;
     }
 
     public Task DesconectarUsuario()
     {
-        _usuarioAtual = new(new ClaimsIdentity());
-        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-        // forceLoad: true sai do circuit SignalR e faz um request HTTP normal,
-        // onde o Razor Page pode chamar SignOutAsync e apagar o cookie.
         navigationManager.NavigateTo("/auth/sair", forceLoad: true);
         return Task.CompletedTask;
     }

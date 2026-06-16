@@ -82,7 +82,7 @@
             : "/painel-items/setor/" + setor.Id;
 
         var protector = DataProtectionProvider.CreateProtector("SistemaRestaurante.Auth");
-        var dto = new LogarUsuario(usuarioLogado.Id, usuarioLogado.Nome, setor.Id, setor.Nome);
+        var dto = new LogarUsuario(usuarioLogado.Id, usuarioLogado.Nome, setor.Id, setor.Nome, setor.Tipo);
         var payload = Uri.EscapeDataString(protector.Protect(JsonSerializer.Serialize(dto)));
         var returnUrl = Uri.EscapeDataString(destino);
 

@@ -48,7 +48,8 @@ public class UsuarioLogaUseCase(
                 usuario.Id,
                 usuario.Nome,
                 setor.Id,
-                setor.Nome
+                setor.Nome,
+                setor.Tipo
             );
 
             await autenticacaoServico.LogarUsuario(logarUsuario);

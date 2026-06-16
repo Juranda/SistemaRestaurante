@@ -29,6 +29,7 @@ public class AuthEntrarModel(IDataProtectionProvider dataProtectionProvider) : P
                 new Claim(ClaimTypes.Name, dto.Nome),
                 new Claim("SetorId", dto.SetorId.ToString()),
                 new Claim("SetorNome", dto.SetorNome),
+                new Claim("SetorTipo", ((int)dto.SetorTipo).ToString()),
             };
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(

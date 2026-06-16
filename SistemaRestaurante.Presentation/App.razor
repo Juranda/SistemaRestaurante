@@ -1,15 +1,12 @@
-﻿<CascadingAuthenticationState>
+@using SistemaRestaurante.Presentation.Shared
+@inject NavigationManager Navigation
+
+<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData">
                 <NotAuthorized>
-                    <div class="d-flex justify-content-center align-items-center min-vh-100">
-                        <div class="d-flex flex-column align-items-center">
-                            <h1 role="alert">Não autorizado</h1>
-                            <p role="alert">Volte para a tela de <NavLink href="login">login</NavLink>
-                            </p>
-                        </div>
-                    </div>
+                    <RedirectToLogin />
                 </NotAuthorized>
             </AuthorizeRouteView>
         </Found>
@@ -18,9 +15,11 @@
             <LayoutView>
                 <div class="d-flex justify-content-center align-items-center min-vh-100">
                     <div class="d-flex flex-column align-items-center">
-                        <h1 role="alert">Esse caminho não existe </h1>
-                        <p role="alert">Volte para a tela de <NavLink href="login">login</NavLink>
-                        </p>
+                        <h1 role="alert">Esse caminho não existe</h1>
+                        <button class="btn btn-link p-0"
+                                @onclick='() => Navigation.NavigateTo("/login", forceLoad: true)'>
+                            Voltar para o login
+                        </button>
                     </div>
                 </div>
             </LayoutView>
