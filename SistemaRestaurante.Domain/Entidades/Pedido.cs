@@ -11,10 +11,12 @@ public class Pedido
     public int NumeroMesa { get; private set; }
     public DateTime Timestamp { get; private set; }
     public IReadOnlyList<ItemPedido> ItemsPedido => itemsPedido.AsReadOnly();
-    private List<ItemPedido> itemsPedido { get; set; }
+    private List<ItemPedido> itemsPedido;
 
     public bool Pronto => itemsPedido.All(x => x.Status == StatusPedido.PRONTO);
     public int Quantidade => itemsPedido.Select(x => x.Quantidade).Aggregate((prev, curr) => prev += curr);
+
+    private Pedido() { NomeCliente = ""; itemsPedido = []; }
 
     private Pedido(int id, string nomeCliente, int numeroMesa, List<ItemPedido> itemsPedido, DateTime timestamp)
     {

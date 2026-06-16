@@ -1,0 +1,30 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sqlserver
+    networks:
+      - rede_privada
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=SistemaRestaurante;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: restaurante-sqlserver
+    env_file: .env
+    ports:
+      - "1433:1433"
+    networks:
+      - rede_privada
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+volumes:
+  sqlserver-data:
+
+networks:
+  rede_privada:

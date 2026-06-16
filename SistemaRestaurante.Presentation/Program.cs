@@ -1,14 +1,19 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.EntityFrameworkCore;
 using SistemaRestaurante.Application.InterfacesDeServicos;
 using SistemaRestaurante.Application.UseCases;
 using SistemaRestaurante.Domain.Repositorios;
+using SistemaRestaurante.Infrastructure;
 using SistemaRestaurante.Infrastructure.Autenticacao;
 using SistemaRestaurante.Infrastructure.Repositorio;
 using SistemaRestaurante.Infrastructure.Servicos;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<EFCoreContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
@@ -20,11 +25,11 @@ builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 builder.Services.AddScoped<IAutenticacaoServico>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 
-builder.Services.AddSingleton<ISetorRepositorio, SetorRepositorioEmMemoria>();
-builder.Services.AddSingleton<IProdutoRepositorio, ProdutoRepositorioEmMemoria>();
-builder.Services.AddSingleton<IPedidoRepositorio, PedidoRepositorioEmMemoria>();
-builder.Services.AddSingleton<IUsuarioRepositorio, UsuarioRepositorioEmMemoria>();
-builder.Services.AddSingleton<IItemPedidoRepositorio, ItemPedidoRepositorioEmMemoria>();
+builder.Services.AddScoped<ISetorRepositorio, SetorRepositorioEFCore>();
+builder.Services.AddScoped<IProdutoRepositorio, ProdutoRepositorioEFCore>();
+builder.Services.AddScoped<IPedidoRepositorio, PedidoRepositorioEFCore>();
+builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorioEFCore>();
+builder.Services.AddScoped<IItemPedidoRepositorio, ItemPedidoRepositorioEFCore>();
 
 builder.Services.AddScoped<UsuarioAlteraStatusDoItemDoPedido>();
 builder.Services.AddScoped<UsuarioRegistraPedidoUseCase>();
