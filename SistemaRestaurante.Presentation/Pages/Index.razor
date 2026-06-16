@@ -1,56 +1,9 @@
 @page "/"
-@attribute [Authorize]
-@layout MainLayout
-
-<div class="container mt-4">
-    <h2>Bem-vindo, @(Usuario?.Nome ?? "")!</h2>
-
-    <div class="row mt-4 gy-3">
-        @if (Usuario?.CriaPedido == true)
-        {
-            <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Novo Pedido</h5>
-                        <p class="card-text text-muted">Registrar um pedido para uma mesa.</p>
-                        <a href="/pedidos/novo" class="btn btn-primary">Abrir</a>
-                    </div>
-                </div>
-            </div>
-        }
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Painel de Pedidos</h5>
-                    <p class="card-text text-muted">Acompanhar os pedidos em tempo real.</p>
-                    <a href="/painel-pedidos" class="btn btn-primary">Abrir</a>
-                </div>
-            </div>
-        </div>
-        @if (Usuario?.RealizaPedido == true)
-        {
-            <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Painel do Setor</h5>
-                        <p class="card-text text-muted">Itens do seu setor para preparar e entregar.</p>
-                        <a href="/painel-items/setor/@(Usuario.SetorId)" class="btn btn-primary">Abrir</a>
-                    </div>
-                </div>
-            </div>
-        }
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Histórico</h5>
-                    <p class="card-text text-muted">Pedidos finalizados.</p>
-                    <a href="/historico" class="btn btn-secondary">Abrir</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@inject NavigationManager Navigation
 
 @code {
-    [CascadingParameter] private UsuarioContexto? Usuario { get; set; }
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("login", forceLoad: true);
+    }
 }
