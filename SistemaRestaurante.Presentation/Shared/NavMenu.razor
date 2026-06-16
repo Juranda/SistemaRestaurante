@@ -1,4 +1,4 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Sistema Restaurante</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -9,25 +9,44 @@
 
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
     <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/pedidos/novo">
-                <span class="oi oi-plus" aria-hidden="true"></span> Cadastrar Pedido
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/painel-pedidos">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Pedidos
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/historico">
-                <span class="oi oi-clock" aria-hidden="true"></span> Histórico
-            </NavLink>
-        </div>
+        @if (Usuario?.CriaPedido == true)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/pedidos/novo">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Cadastrar Pedido
+                </NavLink>
+            </div>
+        }
+        @if (Usuario is not null)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/painel-pedidos">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Pedidos
+                </NavLink>
+            </div>
+        }
+        @if (Usuario?.RealizaPedido == true)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="@($"/painel-items/setor/{Usuario.SetorId}")">
+                    <span class="oi oi-task" aria-hidden="true"></span> Painel do Setor
+                </NavLink>
+            </div>
+        }
+        @if (Usuario is not null)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/historico">
+                    <span class="oi oi-clock" aria-hidden="true"></span> Histórico
+                </NavLink>
+            </div>
+        }
     </nav>
 </div>
 
 @code {
+    [CascadingParameter] private UsuarioContexto? Usuario { get; set; }
+
     private bool collapseNavMenu = true;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;

@@ -1,19 +1,23 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@using SistemaRestaurante.Application.InterfacesDeServicos
+@inject IAutenticacaoServico Auth
 
-<PageTitle>SistemaRestaurante</PageTitle>
+<PageTitle>Sistema Restaurante</PageTitle>
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+<UsuarioContextoProvider>
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu />
         </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+        <main>
+            <div class="top-row px-4">
+                <button class="btn btn-link p-0" @onclick="Auth.DesconectarUsuario">Desconectar</button>
+            </div>
+
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
+    </div>
+</UsuarioContextoProvider>
