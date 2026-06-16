@@ -1,0 +1,33 @@
+@using SistemaRestaurante.Domain.Entidades
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+
+        <h5>@Pedido.NomeCliente</h5>
+
+        <div>
+            Mesa: @Pedido.NumeroMesa
+        </div>
+
+        <div>
+            Itens: @Pedido.Quantidade
+        </div>
+
+        @if (OnProximoApertado.HasDelegate)
+        {
+            <button @onclick="TriggerOnProximoApertadoAsync">Próximo</button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public required Pedido Pedido { get; set; }
+    [Parameter]
+    public EventCallback<int> OnProximoApertado { get; set; }
+
+    private async Task TriggerOnProximoApertadoAsync()
+    {
+        await OnProximoApertado.InvokeAsync(Pedido.Id);
+    }
+}

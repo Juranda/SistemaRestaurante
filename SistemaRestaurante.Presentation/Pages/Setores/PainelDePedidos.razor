@@ -1,0 +1,117 @@
+@page "/painel-pedidos"
+@attribute [Authorize]
+@implements IAsyncDisposable
+
+@using SistemaRestaurante.Domain.Entidades;
+@using SistemaRestaurante.Domain.Repositorios;
+@inject IPedidoRepositorio PedidoRepositorio
+@layout MainLayout
+
+<div class="container-fluid mt-4">
+
+    <h2 class="mb-4">
+        Painel de Pedidos
+    </h2>
+
+    <div class="row gy-2">
+
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark fw-bold">
+                    Em Preparo
+                </div>
+
+                <div class="card-body">
+                    @foreach (var pedido in PedidosEmPreparo)
+                    {
+                        <PedidoCard Pedido="@pedido" />
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white fw-bold">
+                    Prontos
+                </div>
+
+                <div class="card-body">
+                    @foreach (var pedido in PedidosProntos)
+                    {
+                        <PedidoCard Pedido="@pedido" />
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-secondary">
+                <div class="card-header bg-secondary text-white fw-bold">
+                    Entregues
+                </div>
+
+                <div class="card-body">
+                    @foreach (var pedido in PedidosEntregues)
+                    {
+                        <PedidoCard Pedido="@pedido" />
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private IEnumerable<Pedido> TodosPedidos = [];
+    private PeriodicTimer? _timer;
+    private readonly CancellationTokenSource _cts = new();
+
+    private IEnumerable<Pedido> PedidosEmPreparo =>
+        TodosPedidos.Where(x => x.Status == StatusPedido.EM_PREPARO);
+
+    private IEnumerable<Pedido> PedidosProntos =>
+        TodosPedidos.Where(x => x.Status == StatusPedido.PRONTO);
+
+    private IEnumerable<Pedido> PedidosEntregues =>
+        TodosPedidos.Where(x => x.Status == StatusPedido.ENTREGUE);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarPedidos();
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            _ = IniciarRefreshAsync();
+        return Task.CompletedTask;
+    }
+
+    private async Task IniciarRefreshAsync()
+    {
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+        try
+        {
+            while (await _timer.WaitForNextTickAsync(_cts.Token))
+            {
+                await CarregarPedidos();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private async Task CarregarPedidos()
+    {
+        TodosPedidos = (await PedidoRepositorio.ObterTodosPedidosAteHorarioAsync(DateTime.Now)).ToList();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _cts.CancelAsync();
+        _cts.Dispose();
+        _timer?.Dispose();
+    }
+}
