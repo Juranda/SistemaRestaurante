@@ -96,4 +96,9 @@ public class UsuarioRepositorioEmMemoria : IUsuarioRepositorio
 
         return Task.FromResult(true);
     }
+
+    public Task<Usuario?> ObterPorIdAsync(int id)
+    {
+        return Task.FromResult(_usuarios.FirstOrDefault(x => x.Id == id));
+    }
 }

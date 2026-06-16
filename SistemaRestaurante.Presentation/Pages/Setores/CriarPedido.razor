@@ -1,0 +1,202 @@
+@page "/pedidos/novo"
+@attribute [Authorize]
+
+@using System.ComponentModel.DataAnnotations
+@using SistemaRestaurante.Domain.Entidades
+@using SistemaRestaurante.Domain.Repositorios
+@using SistemaRestaurante.Application.UseCases
+@using SistemaRestaurante.Application.DTO.Pedidos
+@inject UsuarioRegistraPedidoUseCase PedidoUseCase
+@inject IProdutoRepositorio ProdutoRepositorio
+@inject NavigationManager Navigation
+@layout MainLayout
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Novo Pedido</h5>
+                </div>
+
+                <div class="card-body">
+                    <EditForm Model="_model" OnValidSubmit="Registrar">
+                        <DataAnnotationsValidator />
+                        <div class="mb-3">
+                            <label class="form-label">Nome do Cliente</label>
+                            <InputText class="form-control" @bind-Value="_model.NomeCliente"
+                                       placeholder="Ex: João Silva" />
+                            <ValidationMessage For="@(() => _model.NomeCliente)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Número da Mesa</label>
+                            <InputNumber class="form-control" @bind-Value="_model.NumeroMesa" />
+                            <ValidationMessage For="@(() => _model.NumeroMesa)" />
+                        </div>
+
+                        <hr />
+                        <h6 class="mb-3">Itens do Pedido</h6>
+
+                        @if (_produtos.Count == 0)
+                        {
+                            <p class="text-muted">Carregando produtos...</p>
+                        }
+                        else
+                        {
+                            <div class="row gy-2 mb-3">
+                                @foreach (var produto in _produtos)
+                                {
+                                    var item = ObterOuCriarItem(produto.Id);
+
+                                    <div class="col-12">
+                                        <div
+                                            class="card card-body py-2 px-3 d-flex flex-row align-items-center justify-content-between">
+                                            <div>
+                                                <span class="fw-semibold">@produto.Nome</span>
+                                                <span class="text-muted ms-2">R$ @produto.Preco.ToString("F2")</span>
+                                            </div>
+
+                                            <div class="d-flex align-items-center gap-2">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                        @onclick="() => Decrementar(produto.Id)">−</button>
+
+                                                <span style="min-width:1.5rem; text-align:center">@item.Quantidade</span>
+
+                                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                        @onclick="() => Incrementar(produto.Id)">+</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(_erro))
+                        {
+                            <div class="alert alert-danger">@_erro</div>
+                        }
+
+                        @if (_sucesso)
+                        {
+                            <div class="alert alert-success">Pedido registrado com sucesso!</div>
+                        }
+
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <button type="button" class="btn btn-secondary" @onclick='() => Navigation.NavigateTo("/painel-pedidos")'>
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@_carregando">
+                                @if (_carregando)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                Registrar Pedido
+                            </button>
+                        </div>
+
+                    </EditForm>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly NovoPedidoModel _model = new();
+    private List<Produto> _produtos = [];
+    private readonly Dictionary<int, RegistraItemPedido> _itensSelecionados = [];
+
+    [CascadingParameter] private UsuarioContexto? UsuarioContexto { get; set; }
+
+    private bool _carregando;
+    private bool _sucesso;
+    private string? _erro;
+    protected override async Task OnInitializedAsync()
+    {
+        _produtos = (await ProdutoRepositorio.ObterTodosDisponiveisAsync()).ToList();
+    }
+
+    private RegistraItemPedido ObterOuCriarItem(int produtoId)
+    {
+        if (!_itensSelecionados.TryGetValue(produtoId, out var item))
+        {
+            item = new RegistraItemPedido(ProdutoId: produtoId, Quantidade: 0);
+            _itensSelecionados[produtoId] = item;
+        }
+        return item;
+    }
+
+    private void Incrementar(int produtoId)
+    {
+        var item = ObterOuCriarItem(produtoId);
+        _itensSelecionados[produtoId] = item with { Quantidade = item.Quantidade + 1 };
+    }
+
+    private void Decrementar(int produtoId)
+    {
+        var item = ObterOuCriarItem(produtoId);
+        if (item.Quantidade > 0)
+            _itensSelecionados[produtoId] = item with { Quantidade = item.Quantidade - 1 };
+    }
+
+    private async Task Registrar()
+    {
+        _erro = null;
+        _sucesso = false;
+
+        
+        if (UsuarioContexto is null)
+            return;
+
+        var itensSelecionados = _itensSelecionados.Values
+            .Where(i => i.Quantidade > 0)
+            .ToList();
+
+        if (itensSelecionados.Count == 0)
+        {
+            _erro = "Adicione ao menos um item ao pedido.";
+            return;
+        }
+
+        _carregando = true;
+
+        var dto = new RegistraPedido(
+            UsuarioId: UsuarioContexto.Id,
+            NomeCliente: _model.NomeCliente,
+            NumeroMesa: _model.NumeroMesa,
+            Items: itensSelecionados
+        );
+
+        var result = await PedidoUseCase.Execute(dto);
+
+        _carregando = false;
+
+        if (result.IsError)
+        {
+            _erro = result.Errors!.First().Message;
+            return;
+        }
+
+        _sucesso = true;
+
+
+        _model.NomeCliente = "";
+        _model.NumeroMesa = 0;
+
+        foreach (var key in _itensSelecionados.Keys.ToList())
+            _itensSelecionados[key] = _itensSelecionados[key] with { Quantidade = 0 };
+    }
+
+    private class NovoPedidoModel
+    {
+        [Required(ErrorMessage = "Informe o nome do cliente")]
+        [StringLength(Pedido.MAX_CARACTERES_NOME_CLIENTE, MinimumLength = Pedido.MIN_CARACTERES_NOME_CLIENTE, ErrorMessage = "Entre 2 e 100 caracteres")]
+        public string NomeCliente { get; set; } = "";
+
+        [Range(1, 999, ErrorMessage = "Número de mesa inválido")]
+        public int NumeroMesa { get; set; }
+    }
+}

@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SistemaRestaurante.Domain\SistemaRestaurante.Domain.csproj" />
+    <ProjectReference Include="..\SistemaRestaurante.Application\SistemaRestaurante.Application.csproj" />
   </ItemGroup>
 
 </Project>

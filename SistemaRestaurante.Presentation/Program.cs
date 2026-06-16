@@ -24,6 +24,7 @@ builder.Services.AddSingleton<ISetorRepositorio, SetorRepositorioEmMemoria>();
 builder.Services.AddSingleton<IProdutoRepositorio, ProdutoRepositorioEmMemoria>();
 builder.Services.AddSingleton<IPedidoRepositorio, PedidoRepositorioEmMemoria>();
 builder.Services.AddSingleton<IUsuarioRepositorio, UsuarioRepositorioEmMemoria>();
+builder.Services.AddSingleton<IItemPedidoRepositorio, ItemPedidoRepositorioEmMemoria>();
 
 builder.Services.AddScoped<UsuarioAlteraStatusDoItemDoPedido>();
 builder.Services.AddScoped<UsuarioRegistraPedidoUseCase>();
@@ -70,6 +71,5 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
-app.UsePathBase("/login");
 
 app.Run();

@@ -113,9 +113,21 @@ public class PedidoRepositorioEmMemoria : IPedidoRepositorio
 
     public Task<Pedido> CriarAsync(Pedido pedido)
     {
-        _pedidos.Add(pedido);
+        int pedidoId = _pedidos.Count + 1;
 
-        return Task.FromResult(pedido);
+        var items = pedido.ItemsPedido.ToList();
+        foreach (var item in items)
+            item.AtualizarPedidoId(pedidoId);
+
+        Result<Pedido> result = Pedido.Criar(pedidoId, pedido.NomeCliente, pedido.NumeroMesa, items, DateTime.Now);
+
+        if (result.IsError)
+            throw new Exception($"Pedido inválido ao criar: {result}");
+
+        Pedido pedidoNovo = result.Value!;
+        _pedidos.Add(pedidoNovo);
+
+        return Task.FromResult(pedidoNovo);
     }
 
     public Task<Pedido> AtualizarAsync(Pedido pedido)
