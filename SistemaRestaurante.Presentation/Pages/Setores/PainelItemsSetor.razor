@@ -114,8 +114,15 @@
     {
         if (Usuario is null) return;
 
-        _produtos = (await ProdutoRepositorio.ObterTodosDisponiveisAsync()).ToList();
-        await CarregarPedidos();
+        try
+        {
+            _produtos = (await ProdutoRepositorio.ObterTodosDisponiveisAsync()).ToList();
+            await CarregarPedidos();
+        }
+        catch
+        {
+            _erro = "Erro ao carregar dados do painel. Tente recarregar a página.";
+        }
     }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
@@ -141,7 +148,15 @@
 
     private async Task CarregarPedidos()
     {
-        _todosPedidos = (await PedidoRepositorio.ObterTodosPedidosAteHorarioAsync(DateTime.Now)).ToList();
+        try
+        {
+            _todosPedidos = (await PedidoRepositorio.ObterTodosPedidosAteHorarioAsync(DateTime.Now)).ToList();
+            _erro = null;
+        }
+        catch
+        {
+            _erro = "Erro ao carregar pedidos. Tentando novamente...";
+        }
     }
 
     private async Task AvancarStatus(Pedido pedido, ItemPedido item)
@@ -158,16 +173,23 @@
         if (novoStatus == item.Status)
             return;
 
-        var result = await AvancarStatusUseCase.Execute(Usuario!.Id, pedido.Id, item.ProdutoId, novoStatus);
-
-        if (result.IsError)
+        try
         {
-            _erro = result.Errors!.First().Message;
-            return;
-        }
+            var result = await AvancarStatusUseCase.Execute(Usuario!.Id, pedido.Id, item.ProdutoId, novoStatus);
 
-        await CarregarPedidos();
-        StateHasChanged();
+            if (result.IsError)
+            {
+                _erro = result.Errors!.First().Message;
+                return;
+            }
+
+            await CarregarPedidos();
+            StateHasChanged();
+        }
+        catch
+        {
+            _erro = "Ocorreu um erro ao atualizar o status. Tente novamente.";
+        }
     }
 
     public async ValueTask DisposeAsync()

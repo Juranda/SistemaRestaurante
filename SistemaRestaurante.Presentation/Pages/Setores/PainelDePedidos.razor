@@ -13,6 +13,11 @@
         Painel de Pedidos
     </h2>
 
+    @if (!string.IsNullOrEmpty(_erro))
+    {
+        <div class="alert alert-danger">@_erro</div>
+    }
+
     <div class="row gy-2">
 
         <div class="col-md-4">
@@ -65,6 +70,7 @@
 @code {
 
     private IEnumerable<Pedido> TodosPedidos = [];
+    private string? _erro;
     private PeriodicTimer? _timer;
     private readonly CancellationTokenSource _cts = new();
 
@@ -105,7 +111,15 @@
 
     private async Task CarregarPedidos()
     {
-        TodosPedidos = (await PedidoRepositorio.ObterTodosPedidosAteHorarioAsync(DateTime.Now)).ToList();
+        try
+        {
+            TodosPedidos = (await PedidoRepositorio.ObterTodosPedidosAteHorarioAsync(DateTime.Now)).ToList();
+            _erro = null;
+        }
+        catch
+        {
+            _erro = "Erro ao carregar pedidos. Tentando novamente...";
+        }
     }
 
     public async ValueTask DisposeAsync()

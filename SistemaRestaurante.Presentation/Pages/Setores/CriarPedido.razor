@@ -170,14 +170,24 @@
             Items: itensSelecionados
         );
 
-        var result = await PedidoUseCase.Execute(dto);
-
-        _carregando = false;
-
-        if (result.IsError)
+        try
         {
-            _erro = result.Errors!.First().Message;
+            var result = await PedidoUseCase.Execute(dto);
+
+            if (result.IsError)
+            {
+                _erro = result.Errors!.First().Message;
+                return;
+            }
+        }
+        catch
+        {
+            _erro = "Ocorreu um erro ao registrar o pedido. Tente novamente.";
             return;
+        }
+        finally
+        {
+            _carregando = false;
         }
 
         _sucesso = true;

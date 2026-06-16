@@ -41,16 +41,25 @@
                     <ValidationMessage For="@(() => Model.Senha)" />
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">
-                    Entrar
-                </button>
+                @if (_carregando)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-secondary" role="status"></div>
+                    </div>
+                }
+                else
+                {
+                    <button type="submit" class="btn btn-primary w-100">
+                        Entrar
+                    </button>
+                }
 
             </EditForm>
 
-            @if (!string.IsNullOrWhiteSpace(MensagemErro))
+            @if (!string.IsNullOrWhiteSpace(_erro))
             {
                 <div class="alert alert-danger mt-3">
-                    @MensagemErro
+                    @_erro
                 </div>
             }
 
@@ -60,33 +69,48 @@
 
 @code {
     private LoginModel Model { get; set; } = new();
-
-    private string? MensagemErro;
+    private bool _carregando = false;
+    private string? _erro;
 
     private async Task ExecuteLogin()
     {
-        // Exemplo:
-        var result = await LoginUseCase.Execute(Model.Nome, Model.Senha);
+        _carregando = true;
+        _erro = null;
+        StateHasChanged();
 
-        if (result.IsError)
+        try
         {
-            MensagemErro = "O usuario o senha não existem";
-            return;
+            var result = await LoginUseCase.Execute(Model.Nome, Model.Senha);
+
+            if (result.IsError)
+            {
+                _erro = "O usuario o senha não existem";
+                return;
+            }
+
+            UsuarioLogado usuarioLogado = result.Value!;
+            Setor setor = usuarioLogado.Setor;
+
+            var destino = setor.Tipo != TipoSetor.REALIZA_PEDIDO
+                ? "/pedidos/novo"
+                : "/painel-items/setor/" + setor.Id;
+
+            var protector = DataProtectionProvider.CreateProtector("SistemaRestaurante.Auth");
+            var dto = new LogarUsuario(usuarioLogado.Id, usuarioLogado.Nome, setor.Id, setor.Nome, setor.Tipo);
+            var payload = Uri.EscapeDataString(protector.Protect(JsonSerializer.Serialize(dto)));
+            var returnUrl = Uri.EscapeDataString(destino);
+
+            Navigation.NavigateTo($"/auth/entrar?payload={payload}&returnUrl={returnUrl}", forceLoad: true);
         }
-
-        UsuarioLogado usuarioLogado = result.Value!;
-        Setor setor = usuarioLogado.Setor;
-
-        var destino = setor.Tipo != TipoSetor.REALIZA_PEDIDO
-            ? "/pedidos/novo"
-            : "/painel-items/setor/" + setor.Id;
-
-        var protector = DataProtectionProvider.CreateProtector("SistemaRestaurante.Auth");
-        var dto = new LogarUsuario(usuarioLogado.Id, usuarioLogado.Nome, setor.Id, setor.Nome, setor.Tipo);
-        var payload = Uri.EscapeDataString(protector.Protect(JsonSerializer.Serialize(dto)));
-        var returnUrl = Uri.EscapeDataString(destino);
-
-        Navigation.NavigateTo($"/auth/entrar?payload={payload}&returnUrl={returnUrl}", forceLoad: true);
+        catch
+        {
+            _erro = "Um erro interno ocorreu.";
+        }
+        finally
+        {
+            _carregando = false;
+            StateHasChanged();
+        }
     }
 
     public class LoginModel

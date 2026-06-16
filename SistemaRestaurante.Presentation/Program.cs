@@ -1,76 +1,28 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
-using SistemaRestaurante.Application.InterfacesDeServicos;
-using SistemaRestaurante.Application.UseCases;
-using SistemaRestaurante.Domain.Repositorios;
 using SistemaRestaurante.Infrastructure;
-using SistemaRestaurante.Infrastructure.Autenticacao;
-using SistemaRestaurante.Infrastructure.Repositorio;
-using SistemaRestaurante.Infrastructure.Servicos;
+using SistemaRestaurante.Presentation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<EFCoreContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddDataProtection();
-
-builder.Services.AddSingleton<ISenhaHasher, BCryptSenhaHasher>();
-builder.Services.AddScoped<CustomAuthStateProvider>();
-builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
-builder.Services.AddScoped<IAutenticacaoServico>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
-
-builder.Services.AddScoped<ISetorRepositorio, SetorRepositorioEFCore>();
-builder.Services.AddScoped<IProdutoRepositorio, ProdutoRepositorioEFCore>();
-builder.Services.AddScoped<IPedidoRepositorio, PedidoRepositorioEFCore>();
-builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorioEFCore>();
-builder.Services.AddScoped<IItemPedidoRepositorio, ItemPedidoRepositorioEFCore>();
-
-builder.Services.AddScoped<UsuarioAlteraStatusDoItemDoPedido>();
-builder.Services.AddScoped<UsuarioRegistraPedidoUseCase>();
-builder.Services.AddScoped<UsuarioLogaUseCase>();
-builder.Services.AddScoped<HistoricoPedidosUseCase>();
-
-
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/login";
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
-        options.SlidingExpiration = true;
-        options.Cookie.HttpOnly = true;
-        options.Cookie.IsEssential = true;
-    });
-builder.Services.AddAuthorizationCore(options =>
-{
-    options.AddPolicy("Setor", policy =>
-    {
-        policy.RequireClaim("SetorId");
-        policy.RequireClaim("SetorNome");
-    });
-});
+builder.Services
+    .AdicionarServicos()
+    .AdicionarRepositorios(builder.Configuration)
+    .AdicionarCasosDeUso()
+    .AdicionarAutenticacao();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+await AplicarMigrationsAsync(app);
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapRazorPages();
@@ -78,3 +30,23 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
+
+static async Task AplicarMigrationsAsync(WebApplication app)
+{
+    const int maxTentativas = 10;
+    for (var tentativa = 1; tentativa <= maxTentativas; tentativa++)
+    {
+        try
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<EFCoreContext>();
+            await db.Database.MigrateAsync();
+            return;
+        }
+        catch (Exception ex) when (tentativa < maxTentativas)
+        {
+            Console.WriteLine($"[Migration] Tentativa {tentativa}/{maxTentativas} falhou: {ex.Message}. Aguardando 5s...");
+            await Task.Delay(5000);
+        }
+    }
+}

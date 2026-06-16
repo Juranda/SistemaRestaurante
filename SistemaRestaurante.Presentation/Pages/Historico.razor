@@ -17,7 +17,7 @@
             <div class="spinner-border text-secondary" role="status"></div>
         </div>
     }
-    else if (_erro)
+    else if (_erro is not null)
     {
         <div class="alert alert-danger">
             Ocorreu um erro ao carregar o histórico. Tente novamente.
@@ -72,14 +72,14 @@
 @code {
     private IEnumerable<Pedido> _pedidos = [];
     private bool _carregando = true;
-    private bool _erro = false;
+    private string? _erro;
 
     protected override async Task OnInitializedAsync() => await Carregar();
 
     private async Task Carregar()
     {
         _carregando = true;
-        _erro = false;
+        _erro = null;
 
         try
         {
@@ -87,7 +87,7 @@
         }
         catch
         {
-            _erro = true;
+            _erro = "Algo de errado aconteceu";
         }
         finally
         {
