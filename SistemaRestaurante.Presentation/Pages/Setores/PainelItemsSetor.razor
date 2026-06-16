@@ -1,5 +1,7 @@
 @page "/painel-items/setor/{setorId:int}"
 @attribute [Authorize(Policy = "Setor")]
+@implements IAsyncDisposable
+@layout MainLayout
 
 @using SistemaRestaurante.Domain.Entidades
 @using SistemaRestaurante.Domain.Repositorios
@@ -8,11 +10,10 @@
 @inject IPedidoRepositorio PedidoRepositorio
 @inject IProdutoRepositorio ProdutoRepositorio
 @inject UsuarioAlteraStatusDoItemDoPedido AvancarStatusUseCase
-@inject AuthenticationStateProvider AuthProvider
 
 <div class="container-fluid mt-4">
 
-    <h2 class="mb-4">Painel de Itens — Setor @setorId</h2>
+    <h2 class="mb-4">Painel de Itens — @(Usuario!.SetorNome)</h2>
 
     <div class="row gy-2">
 
@@ -83,13 +84,14 @@
 
 @code {
     [Parameter] public int setorId { get; set; }
-    //[CascadingParameter] private Setor SetorAtual { get; set; }
+    [CascadingParameter] private UsuarioContexto? Usuario { get; set; }
 
     private List<Pedido> _todosPedidos = [];
-    private int usuarioId;
+    private List<Produto> _produtos = [];
     private string? _erro;
+    private PeriodicTimer? _timer;
+    private readonly CancellationTokenSource _cts = new();
 
-    // Pares (Pedido, Item) filtrados por setor e status
     private IEnumerable<(Pedido pedido, ItemPedido item)> TodosItensDoSetor =>
         _todosPedidos
             .SelectMany(p => p.ItemsPedido
@@ -106,22 +108,35 @@
         TodosItensDoSetor.Where(x => x.item.Status == StatusPedido.ENTREGUE);
 
     private string NomeProduto(int produtoId) =>
-    _produtos.FirstOrDefault(p => p.Id == produtoId)?.Nome ?? $"Produto #{produtoId}";
-
-    private List<Produto> _produtos = [];
+        _produtos.FirstOrDefault(p => p.Id == produtoId)?.Nome ?? $"Produto #{produtoId}";
 
     protected override async Task OnInitializedAsync()
     {
-        var auth = await AuthProvider.GetAuthenticationStateAsync();
-        var claim = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (Usuario is null) return;
 
-        if (claim is null || !int.TryParse(claim, out usuarioId))
-            return;
-
-        // Carrega produtos para lookup de nome
         _produtos = (await ProdutoRepositorio.ObterTodosDisponiveisAsync()).ToList();
-
         await CarregarPedidos();
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Usuario is not null)
+            _ = IniciarRefreshAsync();
+        return Task.CompletedTask;
+    }
+
+    private async Task IniciarRefreshAsync()
+    {
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+        try
+        {
+            while (await _timer.WaitForNextTickAsync(_cts.Token))
+            {
+                await CarregarPedidos();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException) { }
     }
 
     private async Task CarregarPedidos()
@@ -143,7 +158,7 @@
         if (novoStatus == item.Status)
             return;
 
-        var result = await AvancarStatusUseCase.Execute(usuarioId, pedido.Id, item.ProdutoId, novoStatus);
+        var result = await AvancarStatusUseCase.Execute(Usuario!.Id, pedido.Id, item.ProdutoId, novoStatus);
 
         if (result.IsError)
         {
@@ -151,8 +166,14 @@
             return;
         }
 
-        // Recarrega para refletir o novo estado
         await CarregarPedidos();
         StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _cts.CancelAsync();
+        _cts.Dispose();
+        _timer?.Dispose();
     }
 }

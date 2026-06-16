@@ -1,0 +1,46 @@
+@* Components/ItemPedidoCard.razor *@
+
+@using SistemaRestaurante.Domain.Entidades
+
+<div class="card card-body py-2 px-3">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <span class="fw-semibold">@NomeProduto</span>
+            <br />
+            <small class="text-muted">
+                Mesa @Pedido.NumeroMesa — @Pedido.NomeCliente
+            </small>
+        </div>
+        <span class="badge @BadgeClass">x(@Pedido.Quantidade)</span>
+    </div>
+
+    @if (OnAvancar is not null && !string.IsNullOrEmpty(LabelAvancar))
+    {
+        <button class="btn btn-sm @BotaoClass mt-2 w-100" @onclick="OnAvancar">
+            @LabelAvancar
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Pedido Pedido { get; set; } = default!;
+    [Parameter, EditorRequired] public ItemPedido Item { get; set; } = default!;
+    [Parameter, EditorRequired] public string NomeProduto { get; set; } = "";
+    [Parameter] public string LabelAvancar { get; set; } = "";
+    [Parameter] public Func<Task>? OnAvancar { get; set; }
+
+    private string BadgeClass => Item.Status switch
+    {
+        StatusPedido.EM_PREPARO => "bg-warning text-dark",
+        StatusPedido.PRONTO => "bg-success",
+        StatusPedido.ENTREGUE => "bg-secondary",
+        _ => "bg-light"
+    };
+
+    private string BotaoClass => Item.Status switch
+    {
+        StatusPedido.EM_PREPARO => "btn-warning",
+        StatusPedido.PRONTO => "btn-success",
+        _ => "btn-secondary"
+    };
+}
